@@ -1,0 +1,36 @@
+# nginx proxy address - http://172.17.0.1:13378
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "1"
+
+services:
+  audiobookshelf:
+    image: linuxserver/audiobookshelf:latest
+    container_name: audiobookshelf-app
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - audiobookshelf
+    ports:
+      - "13378:13378"
+    environment:
+      TZ: ${TZ:-America/New_York}
+      PUID: ${SERVICE_USER:-1000}
+      PGID: ${SERVICE_GROUP:-1000}
+    volumes:
+      - ./rootfs/config/audiobookshelf:/config
+      - ./rootfs/data/audiobookshelf:/data
+      - ./rootfs/data/media:/media
+      - ./rootfs/data/downloads:/downloads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13378"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  audiobookshelf:
+    external: false
