@@ -21,10 +21,10 @@ services:
       PUID: ${SERVICE_USER:-1000}
       PGID: ${SERVICE_GROUP:-1000}
     volumes:
-      - ./rootfs/config/audiobookshelf:/config
-      - ./rootfs/data/audiobookshelf:/data
-      - ./rootfs/data/media:/media
-      - ./rootfs/data/downloads:/downloads
+      - ./volumes/config/audiobookshelf:/config
+      - ./volumes/data/audiobookshelf:/data
+      - ./volumes/data/media:/media
+      - ./volumes/data/downloads:/downloads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:13378"]
       interval: 30s
