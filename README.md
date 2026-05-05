@@ -47,10 +47,10 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/config/audiobookshelf` - Data storage
-- `./rootfs/data/audiobookshelf` - Data storage
-- `./rootfs/data/media` - Data storage
-- `./rootfs/data/downloads` - Data storage
+- `./volumes/config/audiobookshelf` - Data storage
+- `./volumes/data/audiobookshelf` - Data storage
+- `./volumes/data/media` - Data storage
+- `./volumes/data/downloads` - Data storage
 
 ## 🔍 Logging
 
