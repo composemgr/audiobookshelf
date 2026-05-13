@@ -15,12 +15,32 @@ services:
     hostname: ${BASE_HOST_NAME:-$HOSTNAME}
     restart: always
     logging: *default-logging
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://audiobookshelf-app:80'
+      - 'cloudflare.hostname=audiobookshelf.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.audiobookshelf-app.entrypoints=http'
+      - 'traefik.http.routers.audiobookshelf-app-secure.tls=true'
+      - 'traefik.http.routers.audiobookshelf-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.audiobookshelf-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.audiobookshelf-app.middlewares=audiobookshelf-app-https-redirect'
+      - 'traefik.http.routers.audiobookshelf-app-secure.entrypoints=https'
+      - 'traefik.http.routers.audiobookshelf-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.audiobookshelf-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.audiobookshelf-app-secure.service=audiobookshelf-app'
+      - 'traefik.http.services.audiobookshelf-app.loadbalancer.server.port=80'
     networks:
       - audiobookshelf
+      - proxy
+      - cloudflare
     ports:
       - "172.17.0.1:13378:80"
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: audiobookshelf-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     volumes:
       - ./volumes/config/audiobookshelf:/config
       - ./volumes/data/audiobookshelf:/metadata
@@ -35,3 +55,7 @@ services:
 networks:
   audiobookshelf:
     external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
