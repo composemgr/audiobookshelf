@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:13378
 
+name: audiobookshelf
 x-logging: &default-logging
   driver: json-file
   options:
@@ -8,25 +9,25 @@ x-logging: &default-logging
 
 services:
   audiobookshelf:
-    image: linuxserver/audiobookshelf:latest
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    pull_policy: always
     container_name: audiobookshelf-app
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
     logging: *default-logging
     networks:
       - audiobookshelf
     ports:
-      - "13378:13378"
+      - "172.17.0.1:13378:80"
     environment:
       TZ: ${TZ:-America/New_York}
-      PUID: ${SERVICE_USER:-1000}
-      PGID: ${SERVICE_GROUP:-1000}
     volumes:
       - ./volumes/config/audiobookshelf:/config
-      - ./volumes/data/audiobookshelf:/data
+      - ./volumes/data/audiobookshelf:/metadata
       - ./volumes/data/media:/media
       - ./volumes/data/downloads:/downloads
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:13378"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 3
