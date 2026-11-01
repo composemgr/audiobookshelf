@@ -1,61 +1,36 @@
-# nginx proxy address - http://172.17.0.1:13378
+# nginx proxy address - http://172.17.0.1:64114
 
 name: audiobookshelf
 x-logging: &default-logging
-  driver: json-file
   options:
-    max-size: "5m"
-    max-file: "1"
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
 
 services:
-  audiobookshelf:
+  app:
     image: ghcr.io/advplyr/audiobookshelf:latest
-    pull_policy: always
     container_name: audiobookshelf-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
     hostname: ${BASE_HOST_NAME:-$HOSTNAME}
     restart: always
+    pull_policy: always
     logging: *default-logging
-    labels:
-      - 'traefik.enable=true'
-      - 'cloudflare.enable=true'
-      - 'traefik.docker.network=proxy'
-      - 'cloudflare.service=http://audiobookshelf-app:80'
-      - 'cloudflare.hostname=audiobookshelf.${CLOUDFLARE_ZONE_NAME:-}'
-      - 'traefik.http.routers.audiobookshelf-app.entrypoints=http'
-      - 'traefik.http.routers.audiobookshelf-app-secure.tls=true'
-      - 'traefik.http.routers.audiobookshelf-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
-      - 'traefik.http.middlewares.audiobookshelf-app-https-redirect.redirectscheme.scheme=https'
-      - 'traefik.http.routers.audiobookshelf-app.middlewares=audiobookshelf-app-https-redirect'
-      - 'traefik.http.routers.audiobookshelf-app-secure.entrypoints=https'
-      - 'traefik.http.routers.audiobookshelf-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
-      - 'traefik.http.routers.audiobookshelf-app-secure.tls.certresolver=cloudflare'
-      - 'traefik.http.routers.audiobookshelf-app-secure.service=audiobookshelf-app'
-      - 'traefik.http.services.audiobookshelf-app.loadbalancer.server.port=80'
-    networks:
-      - audiobookshelf
-      - proxy
-      - cloudflare
-    ports:
-      - "172.17.0.1:13378:80"
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: audiobookshelf-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    ports:
+      - '172.17.0.1:64114:80'
     volumes:
-      - ./volumes/config/audiobookshelf:/config
-      - ./volumes/data/audiobookshelf:/metadata
-      - ./volumes/data/media:/media
-      - ./volumes/data/downloads:/downloads
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - './volumes/config/audiobookshelf:/config'
+      - './volumes/data/audiobookshelf:/metadata'
+      - './volumes/data/media/audiobooks:/audiobooks'
+      - './volumes/data/media/podcasts:/podcasts'
+    networks:
+      - audiobookshelf
 
 networks:
   audiobookshelf:
+    name: audiobookshelf
     external: false
-  proxy:
-    external: true
-  cloudflare:
-    external: true

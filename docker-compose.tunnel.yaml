@@ -1,0 +1,39 @@
+name: audiobookshelf
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: audiobookshelf-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    volumes:
+      - './volumes/config/audiobookshelf:/config'
+      - './volumes/data/audiobookshelf:/metadata'
+      - './volumes/data/media/audiobooks:/audiobooks'
+      - './volumes/data/media/podcasts:/podcasts'
+    labels:
+      - 'cloudflare.enable=true'
+      - 'cloudflare.service=http://audiobookshelf-app:80'
+      - 'cloudflare.hostname=${BASE_HOST_NAME:-$HOSTNAME}'
+    networks:
+      - audiobookshelf
+      - cloudflare
+
+networks:
+  audiobookshelf:
+    name: audiobookshelf
+    external: false
+  cloudflare:
+    external: true
